@@ -483,8 +483,6 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
 
             DEBUG_MSG("Je suis dans asciizDATA ligne %d\n",liste->lex.ligne);
 
-
-
             /*remplissage_op_data(collection_data,liste->lex); /* fonction à créer !! */
 
             si_dernier{
@@ -543,7 +541,8 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
 
 
                         si_dernier{
-                            return(liste);
+                          *fin = 1;
+                          return(liste);
                         }
                         else {
                             avance;
@@ -579,30 +578,23 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
             }
             break;
 
-        case spaceDATA:      /*penser à vérif 1 seule opérande et si négatif */
+        case spaceDATA:      /*pe nser à vérif 1 seule opérande et si négatif */
 
             DEBUG_MSG("Je suis dans spaceDATA ligne %d\n",liste->lex.ligne);
 
             DATA data1;
+            char* ptr;
+            long res;
 
             strcpy(data1.DIR,space);
 
-            printf("voici la directive copier dans le data1: %s\n",data1.DIR);
-            data1.ligne=liste->lex.ligne;
-            data1.decalage = *decalage_data;
-            *decalage_data +=4;
-
+            printf("voici la directive copiee dans le data1: %s\n",data1.DIR);
 
             switch(liste->lex.type) {
 
             case HEXA:
                 strcpy(data1.Operande.hexa_word,liste->lex.strlex);
                 data1.tag = 5;
-                break;
-
-            case SYMBOL:
-                strcpy(data1.Operande.SYMBOL,liste->lex.strlex);
-                data1.tag = 1;
                 break;
 
             case DECIMAL:
@@ -631,12 +623,23 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
                 avance;
                 DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
                 while(liste->lex.type==HEXA || liste->lex.type==DECIMAL || liste->lex.type==DECIMAL_ZERO) {
-
-
-
+                    res = strtol(liste->lex.strlex,&ptr,10);
+                    if (*ptr!='\0') {printf("trop long\n"); return(liste);}
+                    *decalage_data +=res;
+                    *decalage_global+=res;
+                    data1.decalage = *decalage_data;
+                    data1.ligne =liste->lex.ligne;
 
                     si_pas_dernier{
                         avance;
+                        res = strtol(liste->lex.strlex,&ptr,10);
+                        if (*ptr!='\0') {printf("trop long\n"); return(liste);}
+                        *decalage_data +=res;
+                        *decalage_global+=res;
+                        data1.decalage = *decalage_data;
+                        data1.ligne =liste->lex.ligne;
+
+
                         DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
                         if (liste->lex.type==VIRGULE) {
                             DEBUG_MSG("Erreur : multiples opérandes pour .space ligne %d\n",liste->lex.ligne);

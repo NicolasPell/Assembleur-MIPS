@@ -1,0 +1,9 @@
+
+.data 
+.byte 12,0xAA,0xBB,0xCC,0xdd
+.byte 0xFF
+.word 0xAABBCCDD, 12
+.asciiz lol, ahaha
+
+.space 5
+

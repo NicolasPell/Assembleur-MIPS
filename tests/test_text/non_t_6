@@ -1,0 +1,8 @@
+
+#Instruction .text invalide
+
+.text
+	ADD 2,3,4
+	ADDI fausse,instruct,3
+	
+. 

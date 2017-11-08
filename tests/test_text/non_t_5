@@ -1,0 +1,6 @@
+
+#Instruction .text invalide
+
+.text
+	ADD 2,3,4
+	DJD fausse,instruct

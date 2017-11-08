@@ -1,0 +1,33 @@
+
+#Teste toutes les instructions disponibles
+#toutes les instructions sont reconnues mais le nombre d'opérande n'est pas encore bien traité
+
+
+.text
+	ADD 2,3,3
+	ADDI bonjour,5,6
+	AND 1,2,3
+	BEQ ahah,4,lol
+	BGTZ ff, gg
+	BLEZ flfglf, 6
+	BNE et,ff,5
+	DIV 5,7
+	J la
+	JAL ici
+	JR oui
+	LUI je, m
+	LW appelle, benjamin
+	MFHI et
+	MFLO je
+	MULT suis, en
+	NOP
+	OR train, d, ecrire
+	ROTR un,fichier,test
+	SLL qui, j, espere
+	SLT va, fonctioner, parfaitement
+	SRL parce, que, on
+	SUB n, a, plus
+	SW le, temps
+	SYSCALL
+	XOR merci, salut, bonsoir
+

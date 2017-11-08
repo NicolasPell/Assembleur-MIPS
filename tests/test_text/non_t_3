@@ -1,0 +1,5 @@
+
+.text	#dd
+
+	AAH 2,3,4
+	SUB bonjour,5

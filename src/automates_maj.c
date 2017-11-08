@@ -18,7 +18,7 @@
 
 enum {START, initTEXT, initBSS, initDATA, VIRGULE, DEB_REG, REG, SYMBOL, DEUX_POINTS, DECIMAL_ZERO, HEXA, DIREC, DECIMAL, PARENTHESE, COMMENT, ETIQUETTE, INSTRUCTION, etiquetteDATA,lexDATA, wordDATA, asciizDATA, spaceDATA, byteDATA, change_sectionDATA, spaceBSS, change_sectionBSS, etiquetteTEXT, deb_instructionTEXT, instructionTEXT, change_sectionTEXT, ERREUR};
 
-
+/* test git */
 /* AUTOMATE INIT */
 
 int automate_init(LISTE_LEX liste) {

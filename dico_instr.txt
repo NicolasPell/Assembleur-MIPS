@@ -1,0 +1,30 @@
+ADD 3 type_R
+ADDI 3 type_I
+AND 3 type_R
+BEQ 3 type_I
+BGTZ 2 type_I
+BLEZ 2 type_I
+BNE 3 type_I
+DIV 2 type_I
+J 1 type_J
+JAL 1 type_J
+JR 1 type_R
+LUI 2 type_I
+LW 2 type_I
+MFHI 1 type_R
+MFLO 1 type_R
+MULT 2 type_R
+NOP 0 type_R
+OR 3 type_R
+ROTR 3 type_R
+SLL 3 type_R
+SLT 3 type_R
+SRL 3 type_R
+SUB 3 type_R
+SW 2 type_I
+SYSCALL 0 type_J
+XOR 3 type_R
+
+
+
+

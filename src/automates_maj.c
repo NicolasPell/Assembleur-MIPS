@@ -62,6 +62,10 @@ int automate_init(LISTE_LEX liste) {
 
             else if(fin==1) {
                 DEBUG_MSG("Fin de la liste ligne %d\n", liste->lex.ligne);
+                DEBUG_MSG("Decalage global = %d\n",decalage_global);
+                DEBUG_MSG("Decalage .data = %d\n",decalage_data);
+                DEBUG_MSG("Decalage .bss = %d\n",decalage_bss);
+                DEBUG_MSG("Decalage .text = %d\n",decalage_text);
                 return(gestion_err);
             }
 
@@ -168,6 +172,9 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
     const char* set = ".set";
     DATA data1;
 
+    char* ptr;
+    long res;
+
     DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
 
     si_dernier {
@@ -190,9 +197,6 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
         case initDATA:
 
             DEBUG_MSG("Je suis dans initDATA\n");
-
-            *decalage_data=*decalage_data+4;
-            *decalage_global=*decalage_global+4;
 
             if (liste->lex.type == DIREC) {
 
@@ -382,22 +386,35 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
                 int compt_virgule = 0;
                 int compt_operande = 0;
 
-
-
                 while(liste->suiv!=NULL) {
                     avance;
                     DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+
                     if(liste->lex.type==HEXA || liste->lex.type==DECIMAL || liste->lex.type==DECIMAL_ZERO || liste->lex.type==SYMBOL) {
                         compt_operande = compt_operande + 1;
 
+                        /* Alignement du word */
+                        if (*decalage_data % 4 != 0) {
+                          int val;
+                          val = 4 - (*decalage_data % 4);
+                          *decalage_data += val ;   /* on incrémente jusqu'au prochain multiple de 4 */
+                          *decalage_global+=val;
 
-                        DATA data1;
-                        strcpy(data1.DIR,word);
-                        printf("voici la directive copier dans le data1: %s\n",data1.DIR);
-                        data1.ligne=liste->lex.ligne;
-                        data1.decalage = *decalage_data;
+                          *decalage_data += 4 ;   /* chaque instruction est codée sur 4 bits pour .word */
+                          *decalage_global+=4;
+                        }
+                        else {
                         *decalage_data +=4;
+                        *decalage_global+=4;
+                        }
 
+                        DEBUG_MSG("decalage data = %d et decala_global = %d\n",*decalage_data, *decalage_global);
+
+                        strcpy(data1.DIR,word);
+
+                        printf("voici la directive copiee dans le data1: %s\n",data1.DIR);
+
+                        /* ajout de la directive dans la structure data1 */
                         switch(liste->lex.type) {
 
                         case HEXA:
@@ -422,11 +439,13 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
 
                         }
 
+                        data1.decalage = *decalage_data;
+                        data1.ligne = liste->lex.ligne;
                         ajout_queue_data(data1,collection_data);
                         visualiser_liste_data(collection_data);
 
+                        /* fin de l'ajout */
 
-                        DEBUG_MSG("Compteur operande = %d\n",compt_operande);
                         si_pas_dernier{
                             if((liste->suiv)->lex.type==VIRGULE) {
                                 avance;
@@ -483,8 +502,6 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
 
             DEBUG_MSG("Je suis dans asciizDATA ligne %d\n",liste->lex.ligne);
 
-            /*remplissage_op_data(collection_data,liste->lex); /* fonction à créer !! */
-
             si_dernier{
                 *fin=1;
                 S=ERREUR;
@@ -498,25 +515,20 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
                 if(liste->lex.type==SYMBOL) {
 
                     while(liste->lex.type==SYMBOL) {
+                        res = strlen( (liste->lex.strlex) +1 );
+                        *decalage_data +=res;
+                        *decalage_global+=res;
 
-
-
-                        DATA data1;
+                        DEBUG_MSG("decalage data = %d et decala_global = %d\n",*decalage_data, *decalage_global);
 
                         strcpy(data1.DIR,asciiz);
 
-                        printf("voici la directive copier dans le data1: %s\n",data1.DIR);
-                        data1.ligne=liste->lex.ligne;
-                        data1.decalage = *decalage_data;
-                        *decalage_data +=4;
-
-
+                        printf("voici la directive copiee dans le data1: %s\n",data1.DIR);
                         switch(liste->lex.type) {
 
                         case HEXA:
                             strcpy(data1.Operande.hexa_word,liste->lex.strlex);
                             data1.tag = 5;
-
                             break;
 
                         case SYMBOL:
@@ -536,13 +548,14 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
 
                         }
 
+                        data1.ligne=liste->lex.ligne;
+                        data1.decalage = *decalage_data;
                         ajout_queue_data(data1,collection_data);
                         visualiser_liste_data(collection_data);
 
-
                         si_dernier{
-                          *fin = 1;
-                          return(liste);
+                            *fin = 1;
+                            return(liste);
                         }
                         else {
                             avance;
@@ -550,12 +563,51 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
                             while(liste->lex.type==VIRGULE && liste->suiv !=NULL && (liste->suiv)->lex.type==SYMBOL) {
                                 avance;
                                 DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+                                res = strlen( (liste->lex.strlex) +1 );
+                                *decalage_data +=res;
+                                *decalage_global+=res;
+
+                                DEBUG_MSG("decalage data = %d et decala_global = %d\n",*decalage_data, *decalage_global);
+
+                                strcpy(data1.DIR,asciiz);
+
+                                printf("voici la directive copiee dans le data1: %s\n",data1.DIR);
+                                switch(liste->lex.type) {
+
+                                case HEXA:
+                                    strcpy(data1.Operande.hexa_word,liste->lex.strlex);
+                                    data1.tag = 5;
+
+                                    break;
+
+                                case SYMBOL:
+                                    strcpy(data1.Operande.chaine_asciiz,liste->lex.strlex);
+                                    data1.tag = 2;
+                                    break;
+
+                                case DECIMAL:
+                                    data1.Operande.decimal_data=(int)liste->lex.strlex;
+                                    data1.tag = 3;
+                                    break;
+
+                                case DECIMAL_ZERO:
+                                    data1.Operande.decimal_data=(int)liste->lex.strlex;
+                                    data1.tag = 5;
+                                    break;
+
+                                }
+
+                                data1.ligne=liste->lex.ligne;
+                                data1.decalage = *decalage_data;
+                                ajout_queue_data(data1,collection_data);
+                                visualiser_liste_data(collection_data);
                                 if(liste->suiv !=NULL) {
                                     avance;
                                     DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
                                 }
                                 else {
                                     si_dernier{
+                                        *fin = 1;
                                         return(liste);
                                     }
                                     DEBUG_MSG("Erreur: dans .asciiz virgule sans opérande ligne %d\n",liste->lex.ligne);
@@ -582,36 +634,6 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
 
             DEBUG_MSG("Je suis dans spaceDATA ligne %d\n",liste->lex.ligne);
 
-            DATA data1;
-            char* ptr;
-            long res;
-
-            strcpy(data1.DIR,space);
-
-            printf("voici la directive copiee dans le data1: %s\n",data1.DIR);
-
-            switch(liste->lex.type) {
-
-            case HEXA:
-                strcpy(data1.Operande.hexa_word,liste->lex.strlex);
-                data1.tag = 5;
-                break;
-
-            case DECIMAL:
-                data1.Operande.decimal_data=(int)liste->lex.strlex;
-                data1.tag = 3;
-                break;
-
-            case DECIMAL_ZERO:
-                data1.Operande.decimal_data=(int)liste->lex.strlex;
-                data1.tag = 3;
-                break;
-
-            }
-
-            ajout_queue_data(data1,collection_data);
-            visualiser_liste_data(collection_data);
-
             si_dernier{
                 *fin=1;
                 S=ERREUR;
@@ -623,23 +645,70 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
                 avance;
                 DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
                 while(liste->lex.type==HEXA || liste->lex.type==DECIMAL || liste->lex.type==DECIMAL_ZERO) {
-                    res = strtol(liste->lex.strlex,&ptr,10);
-                    if (*ptr!='\0') {printf("trop long\n"); return(liste);}
+
+                    if (liste->lex.type == HEXA) {
+                        res = strtol(liste->lex.strlex,&ptr,16);
+
+                        if (*ptr!='\0') {
+                            printf("Hexa trop long pour strtol\n");
+                            return(liste);
+                        }
+                        if (res < 0) {
+                            *gestion_err = 1;
+                            ERROR_MSG("Erreur conversion strtol");
+                        }
+                    }
+                    else if (liste->lex.type == DECIMAL || liste->lex.type == DECIMAL_ZERO){
+                        res = strtol(liste->lex.strlex,&ptr,10);
+                        if (*ptr!='\0') {
+                            printf("Decimal trop long pour strtol\n");
+                            return(liste);
+                        }
+                        if (res < 0) {
+                            *gestion_err = 1;
+                            ERROR_MSG("Erreur conversion strtol");
+                        }
+                    }
+                    else{
+                      /* utiliser la table des symboles ici */
+                    }
+
                     *decalage_data +=res;
                     *decalage_global+=res;
+
+                    DEBUG_MSG("decalage data = %d et decala_global = %d\n",*decalage_data, *decalage_global);
+
+                    strcpy(data1.DIR,space);
+
+                    printf("voici la directive copiee dans le data1: %s\n",data1.DIR);
+
+                    /* ajout de la directive dans la structure data1 */
+                    switch(liste->lex.type) {
+
+                    case HEXA:
+                        strcpy(data1.Operande.hexa_word,liste->lex.strlex);
+                        data1.tag = 5;
+                        break;
+
+                    case DECIMAL:
+                        data1.Operande.decimal_data=(int)liste->lex.strlex;
+                        data1.tag = 3;
+                        break;
+
+                    case DECIMAL_ZERO:
+                        data1.Operande.decimal_data=(int)liste->lex.strlex;
+                        data1.tag = 3;
+                        break;
+                    }
                     data1.decalage = *decalage_data;
-                    data1.ligne =liste->lex.ligne;
+                    data1.ligne = liste->lex.ligne;
+                    ajout_queue_data(data1,collection_data);
+                    visualiser_liste_data(collection_data);
+
+                    /* fin de l'ajout */
 
                     si_pas_dernier{
                         avance;
-                        res = strtol(liste->lex.strlex,&ptr,10);
-                        if (*ptr!='\0') {printf("trop long\n"); return(liste);}
-                        *decalage_data +=res;
-                        *decalage_global+=res;
-                        data1.decalage = *decalage_data;
-                        data1.ligne =liste->lex.ligne;
-
-
                         DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
                         if (liste->lex.type==VIRGULE) {
                             DEBUG_MSG("Erreur : multiples opérandes pour .space ligne %d\n",liste->lex.ligne);
@@ -661,8 +730,6 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
         case byteDATA:
 
             DEBUG_MSG("Je suis dans byteDATA\n");
-
-
             si_dernier{
                 DEBUG_MSG("Fin de liste\n");
                 S=ERREUR;
@@ -681,15 +748,37 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
                     if(liste->lex.type==HEXA || liste->lex.type==DECIMAL || liste->lex.type==DECIMAL_ZERO || liste->lex.type==SYMBOL) {
                         compt_operande = compt_operande + 1;
 
-                        DATA data1;
+                        if (liste->lex.type == HEXA) {
+                            res = strtol(liste->lex.strlex,&ptr,16);
+                            if (*ptr!='\0') {
+                                printf("Hexa trop long pour strtol\n");
+                                return(liste);
+                            }
+                        }
+                        else {
+                            res = strtol(liste->lex.strlex,&ptr,10);
+                            if (*ptr!='\0') {
+                                printf("Decimal trop long pour strtol\n");
+                                return(liste);
+                            }
+                        }
+                        /* test de la taille de l'operande censée être codée sur 1 octet */
+                        if(res>255 || res<0) {
+                            *gestion_err = 1;
+                            ERROR_MSG("Operande of .byte out of boundaries ligne %d - expected size of byte\n", liste->lex.ligne);
+                            return(liste);
+                        }
+
+                        *decalage_data +=res;
+                        *decalage_global+=res;
+
+                        DEBUG_MSG("decalage data = %d et decala_global = %d\n",*decalage_data, *decalage_global);
 
                         strcpy(data1.DIR,byte);
 
                         printf("voici la directive copier dans le data1: %s\n",data1.DIR);
                         data1.ligne=liste->lex.ligne;
                         data1.decalage = *decalage_data;
-                        *decalage_data +=4;
-
 
                         switch(liste->lex.type) {
 
@@ -717,7 +806,7 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
 
                         ajout_queue_data(data1,collection_data);
                         visualiser_liste_data(collection_data);
-
+                        /* fin de l'ajout */
 
                         si_pas_dernier{
                             if((liste->suiv)->lex.type==VIRGULE) {
@@ -785,21 +874,10 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
             *gestion_err = 1;
             return(liste);
         }
+
     }
     return(liste);
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -837,8 +915,7 @@ LISTE_LEX automate_bss(LISTE_LEX liste, LISTE_BSS collection_bss, int* gestion_e
 
         case initBSS:
 
-            *decalage_bss=*decalage_bss+4;
-            *decalage_global=*decalage_global+4;
+            si_dernier{*fin = 1; return(liste);}
 
             if (liste->lex.type == DIREC) {
                 DEBUG_MSG("Je vais analyser la directive %s ligne %d\n",liste->lex.strlex,liste->lex.ligne);
@@ -904,19 +981,59 @@ LISTE_LEX automate_bss(LISTE_LEX liste, LISTE_BSS collection_bss, int* gestion_e
         case spaceBSS:
 
             DEBUG_MSG("Je suis dans spaceBSS\n");
-
-
             BSS bss1;
+            char* ptr;
+            long res;
 
-            strcpy(bss1.DIR,space);
+            si_dernier{
+                *fin=1;
+                S=ERREUR;
+                *gestion_err = 1;
+                DEBUG_MSG(".space vide dans la section bss ligne %d\n",liste->lex.ligne);
+                return(liste);
+            }
+            else {
+              avance;
+              DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+              while(liste->lex.type==HEXA || liste->lex.type==DECIMAL || liste->lex.type==DECIMAL_ZERO) {
 
-            printf("voici la directive copier dans le bss1: %s\n",bss1.DIR);
+                  if (liste->lex.type == HEXA) {
+                      res = strtol(liste->lex.strlex,&ptr,16);
+                      if (*ptr!='\0') {
+                          printf("Hexa trop long pour strtol\n");
+                          return(liste);
+                      }
+                      if (res < 0) {
+                          *gestion_err = 1;
+                          ERROR_MSG("Erreur conversion strtol");
+                      }
+                  }
+                  else if (liste->lex.type == DECIMAL || liste->lex.type == DECIMAL_ZERO){
+                      res = strtol(liste->lex.strlex,&ptr,10);
+                      if (*ptr!='\0') {
+                          printf("Decimal trop long pour strtol\n");
+                          return(liste);
+                      }
+                      if (res < 0) {
+                          *gestion_err = 1;
+                          ERROR_MSG("Erreur conversion strtol");
+                      }
+                  }
+                  else {
+                    /* utiliser la table des symboles ici */
+                  }
+
+                  *decalage_bss+=res;
+                  *decalage_global+=res;
+                  DEBUG_MSG("decalage bss = %d et decala_global = %d\n",*decalage_bss, *decalage_global);
+
+                  printf("je suis la\n");
+                  strcpy(bss1.DIR,space);
+                  printf("je suis ici\n");
+                  printf("voici la directive copiee dans le bss1: %s\n",bss1.DIR);
 
 
-            bss1.ligne=liste->lex.ligne;
-            bss1.decalage = *decalage_bss;
-            *decalage_bss +=4;
-
+  /* ajout de la directive dans la structure bss1 */
 
             switch(liste->lex.type) {
 
@@ -941,47 +1058,32 @@ LISTE_LEX automate_bss(LISTE_LEX liste, LISTE_BSS collection_bss, int* gestion_e
                 break;
 
             }
+            bss1.decalage = *decalage_bss;
+            bss1.ligne = liste->lex.ligne;
+            ajout_queue_data(bss1,collection_bss);
+            visualiser_liste_data(collection_bss);
 
-            ajout_queue_bss(bss1,collection_bss);
-            visualiser_liste_bss(collection_bss);
-
-
-            si_dernier{
-                *fin=1;
-                S=ERREUR;
-                *gestion_err = 1;
-                DEBUG_MSG(".space vide dans la section bss ligne %d\n",liste->lex.ligne);
-                return(liste);
-            }
-            else {
-                avance;
+            /* fin de l'ajout */
 
 
-
+            si_pas_dernier{
+                  avance;
                 DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
-                while(liste->lex.type==HEXA || liste->lex.type==DECIMAL || liste->lex.type==DECIMAL_ZERO) {
-
-
-
-
-                    si_pas_dernier{
-                        avance;
-                        DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
-                        if (liste->lex.type==VIRGULE) {
-                            DEBUG_MSG("Erreur : multiples opérandes pour .space ligne %d\n",liste->lex.ligne);
-                            S=ERREUR;
-                            *gestion_err = 1;
-                            return(liste);
-                        }
-                    }
-                    else {
-                        *fin=1;
-                        return (liste);
-                    }
-                }
-                S=initBSS;
-                break;
-            }
+                      if (liste->lex.type==VIRGULE) {
+                          DEBUG_MSG("Erreur : multiples opérandes pour .space ligne %d\n",liste->lex.ligne);
+                          S=ERREUR;
+                          *gestion_err = 1;
+                          return(liste);
+                      }
+                  }
+                  else {
+                      *fin = 1;
+                      return (liste);
+                  }
+              }
+          S=initBSS;
+          break;
+      }
 
         case COMMENT:
             si_pas_dernier{

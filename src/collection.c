@@ -38,38 +38,38 @@ void visualiser_liste_data(LISTE_DATA l) {
         printf("DATA %d :\n",i);
         printf("\t\tdirective: %s\t decalage: %d \t a la ligne: %d", p->data.DIR,p->data.decalage, p->data.ligne);
 
-	switch(p->data.tag){
+        switch(p->data.tag) {
 
-	case 1:
-		 printf("\tOperande de type SYMBOL: %s \n\n", p->data.Operande.SYMBOL);
+        case 1:
+            printf("\tOperande de type SYMBOL: %s \n\n", p->data.Operande.SYMBOL);
 
-	break;
+            break;
 
-	case 2:
-		 printf("\tOperande de type chaine_asciiz: %s \n\n", p->data.Operande.chaine_asciiz);
-	break;
+        case 2:
+            printf("\tOperande de type chaine_asciiz: %s \n\n", p->data.Operande.chaine_asciiz);
+            break;
 
-	case 3:
-		 printf("\tOperande de type decimal_data: %s \n\n", p->data.Operande.decimal_data);
+        case 3:
+            printf("\tOperande de type decimal_data: %s \n\n", p->data.Operande.decimal_data);
 
-	break;
+            break;
 
-	case 4:
-		 printf("\tOperande de type decimal_bss: %s \n\n", p->data.Operande.decimal_bss);
+        case 4:
+            printf("\tOperande de type decimal_bss: %s \n\n", p->data.Operande.decimal_bss);
 
-	break;
+            break;
 
-	case 5:
-		 printf("\tOperande de type hexa_word: %s \n\n", p->data.Operande.hexa_word);
+        case 5:
+            printf("\tOperande de type hexa_word: %s \n\n", p->data.Operande.hexa_word);
 
-	break;
+            break;
 
-	case 6:
-		 printf("\tOperande de type hexa_byte: %s \n\n", p->data.Operande.hexa_byte);
+        case 6:
+            printf("\tOperande de type hexa_byte: %s \n\n", p->data.Operande.hexa_byte);
 
-	break;
+            break;
 
-	}
+        }
         p=p->suiv;
         i++;
     }

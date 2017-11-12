@@ -34,42 +34,42 @@ void visualiser_liste_data(LISTE_DATA l) {
     int i=1;
     puts("\n\n*** Liste de DATAs : ***\n");
     while(p!=NULL) {
-
+    
         printf("DATA %d :\n",i);
-        printf("\t\tdirective: %s\t decalage: %d \t a la ligne: %d", p->data.DIR,p->data.decalage, p->data.ligne);
+        printf("\t\tdirective: %s\t decalage: %d \t a la ligne: %d\n", p->data.DIR,p->data.decalage, p->data.ligne);
+        
+	switch(p->data.tag){
 
-        switch(p->data.tag) {
+	case 1:
+		 printf("\tOperande de type SYMBOL: %s \n\n", p->data.Operande.SYMBOL);
+		
+	break;
 
-        case 1:
-            printf("\tOperande de type SYMBOL: %s \n\n", p->data.Operande.SYMBOL);
+	case 2:
+		 printf("\tOperande de type chaine_asciiz: %s \n\n", p->data.Operande.chaine_asciiz);
+	break;
 
-            break;
+	case 3:
+		 printf("\tOperande de type decimal_data: %s \n\n", p->data.Operande.decimal_data);
+		
+	break;
 
-        case 2:
-            printf("\tOperande de type chaine_asciiz: %s \n\n", p->data.Operande.chaine_asciiz);
-            break;
+	case 4:
+		 printf("\tOperande de type decimal_bss: %s \n\n", p->data.Operande.decimal_bss);
+		
+	break;
+	
+	case 5:
+		 printf("\tOperande de type hexa_word: %s \n\n", p->data.Operande.hexa_word);
+		
+	break;
+	
+	case 6:
+		 printf("\tOperande de type hexa_byte: %s \n\n", p->data.Operande.hexa_byte);
+		
+	break;
 
-        case 3:
-            printf("\tOperande de type decimal_data: %s \n\n", p->data.Operande.decimal_data);
-
-            break;
-
-        case 4:
-            printf("\tOperande de type decimal_bss: %s \n\n", p->data.Operande.decimal_bss);
-
-            break;
-
-        case 5:
-            printf("\tOperande de type hexa_word: %s \n\n", p->data.Operande.hexa_word);
-
-            break;
-
-        case 6:
-            printf("\tOperande de type hexa_byte: %s \n\n", p->data.Operande.hexa_byte);
-
-            break;
-
-        }
+	}	
         p=p->suiv;
         i++;
     }
@@ -114,7 +114,7 @@ void visualiser_liste_bss(LISTE_BSS l) {
     puts("\n\n*** Liste de BSSs : ***\n");
     while(p!=NULL) {
         printf("BSS %d :\n",i);
-        printf("\t\tdirective: %s\t decalage: %d \t a la ligne: %d\n", p->bss.DIR,p->bss.decalage, p->bss.ligne);
+        printf("\t\tdirective: %s\t decalage: %d \t a la ligne: %d\n", p->bss.DIR,p->bss.decalage, p->bss.ligne);		
         p=p->suiv;
         i++;
     }
@@ -160,7 +160,7 @@ void visualiser_liste_instruct(LISTE_INSTRUCT l) {
     puts("\n\n*** Liste de INSTRUCTs : ***\n");
     while(p!=NULL) {
         printf("INSTRUCT %d :\n",i);
-        printf("\t\tLexeme: %s\t decalage: %d\t  nb_op: %d\t a la ligne: %d", p->instruction.lex.strlex,p->instruction.decalage,p->instruction.nb_operande, p->instruction.ligne );
+        printf("\t\tLexeme: %s\t decalage: %d\t  nb_op: %d\t a la ligne: %d", p->instruction.lex.strlex,p->instruction.decalage,p->instruction.nb_operande, p->instruction.ligne );		
         p=p->suiv;
         i++;
     }
@@ -190,3 +190,39 @@ LISTE_INSTRUCT ajout_queue_instruct(INSTRUCT instruct1, LISTE_INSTRUCT l) {
         return tete_de_l;
     }
 }
+
+
+
+int hashage(char *chaine){
+
+    int i = 0, nombreHache = 0, a = 1;
+
+    for (i = 0 ; chaine[i] != '\0' ; i++)
+
+    {
+
+        nombreHache += a*chaine[i];
+        a = a*17;
+
+    }
+
+    nombreHache %= 200;
+
+
+    return nombreHache;
+}
+
+void visualiser_collection_symb(char** table_symb){
+
+	puts("\n\n*** Table des Symboles : ***\n");
+
+	int i;
+
+	for(i=0;i<200;i++){
+		printf("Element %d : %c \n",i,table_symb[i]);
+	}
+}
+
+
+
+

@@ -292,7 +292,7 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
         case instructionTEXT:
 
             si_dernier{
-                DEBUG_MSG("Fin de liste instruction dans .text sans operande\n");
+                DEBUG_MSG("Fin de liste instruction dans .text pas assez ou pas d' operande\n");
                 S=ERREUR;
                 *gestion_err=1;
                 return(liste);
@@ -310,16 +310,28 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
 
                 instruct1.lex=liste->lex;
                 instruct1.ligne = liste->lex.ligne;
-                printf("Voici l'instruction copiee dans instruct1: %s\n",instruct1.lex.strlex);
+                printf("Voici l'instruction copiee dans la collection instruct1: %s\n",instruct1.lex.strlex);
+
+                compt_virgule = 0;
+                compt_operande = 0;
 
 
                 while(liste->suiv!=NULL) {
 
-                    compt_virgule = 0;
-                    compt_operande = 0;
-
                     avance;
+                    if( liste->lex.type == VIRGULE) {avance;}
                     DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+                    if(liste->lex.type==HEXA ||liste->lex.type==DECIMAL || liste->lex.type==DECIMAL_ZERO || liste->lex.type==SYMBOL || liste->lex.type==REG) {
+
+                      compt_operande = compt_operande + 1;
+
+                      /*
+                      instruct1.Tab_Op[0][0]= liste->lex.type;
+                      instruct1.Tab_Op[0][1]= liste->lex.strlex;
+                      instruct1.Tab_Op[0][2]= liste->lex.strlex;
+                      */
+                    }
+                    DEBUG_MSG("Nombre d'opérande = %d\n", compt_operande);
 
 
                 /*    collection_instruct = ajout_queue_instruct(instruct1, collection_instruct);
@@ -331,7 +343,6 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
 
                       /*  type = whois(liste->lex.type);
                         printf("type du lex = %s\n", type); */
-                        compt_operande = compt_operande + 1;
 
                         switch(liste->lex.type) {
 
@@ -349,13 +360,15 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
 
                           case REG:
 
-                          if (liste->lex.strlex[1] == NULL) {  /* erreur aucun registre de cette taille */
+                          /* erreur aucun registre n'ayant rien après $ */
+                          if (liste->lex.strlex[1] == NULL) {
                             *gestion_err = 1;
                             ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
                             return(liste);
                           }
 
-                          else if (liste->lex.strlex[5] != NULL) {  /* erreur aucun registre de cette taille */
+                          /* erreur aucun registre de cette taille */
+                          else if (liste->lex.strlex[5] != NULL) {
                             *gestion_err = 1;
                             ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
                             return(liste);
@@ -484,30 +497,38 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
                           else if ( (liste->lex.strlex[1] == 'f') && (liste->lex.strlex[2] == 'p') ) {}
                           else if ( (liste->lex.strlex[1] == 'r') && (liste->lex.strlex[2] == 'a') ) {}
 
-
-
-                          else if (isalpha(liste->lex.strlex[1])) {
-
-                          }
-
                           else{
-                            puts("lol");
                             *gestion_err = 1;
+                            ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
                             return(liste);
                           }
 
                           break;
-
                         }
 
                         si_pas_dernier{
+
                             if((liste->suiv)->lex.type==VIRGULE) {
                                 avance;
                                 DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
                                 compt_virgule = compt_virgule + 1;
                                 si_pas_dernier {
                                     if((liste->suiv)->lex.type==HEXA || (liste->suiv)->lex.type==DECIMAL || (liste->suiv)->lex.type==DECIMAL_ZERO || (liste->suiv)->lex.type==SYMBOL||(liste->suiv)->lex.type==REG) {
+                                        avance;
                                         compt_operande = compt_operande + 1;
+                                        DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+                                        DEBUG_MSG("Nombre d'opérande = %d\n", compt_operande);
+                                        si_pas_dernier {
+                                          if((liste->suiv)->lex.type==VIRGULE) {
+                                            if((liste->suiv)->lex.type==HEXA || (liste->suiv)->lex.type==DECIMAL || (liste->suiv)->lex.type==DECIMAL_ZERO || (liste->suiv)->lex.type==SYMBOL||(liste->suiv)->lex.type==REG) {
+                                                avance;
+                                                compt_operande = compt_operande + 1;
+                                                DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+                                                DEBUG_MSG("Nombre d'opérande = %d\n", compt_operande);
+                                              }
+                                            }
+                                          }
+
                                     }
                                     else{
                                         S=ERREUR;
@@ -523,6 +544,9 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
                                 }
                             }
                             else if((liste->suiv)->lex.type==DIREC) { /*nouvelle directive*/
+                                DEBUG_MSG("Nombre d'opérande = %d\n", compt_operande);
+                                compt_virgule = 0;
+                                compt_operande = 0;
                                 *decalage_text = *decalage_text +4 ;
                                 *decalage_global = *decalage_global +4 ;
                                 DEBUG_MSG("decalage text = %d et decala_global = %d\n",*decalage_text, *decalage_global);
@@ -532,6 +556,9 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
                                 break;
                             }
                             else if ((liste->suiv)->lex.type==SYMBOL) {
+                                DEBUG_MSG("Nombre d'opérande de l'instruction précédente = %d\n", compt_operande);
+                                compt_virgule = 0;
+                                compt_operande = 0;
                                 *decalage_text = *decalage_text +4 ;
                                 *decalage_global = *decalage_global +4 ;
                                 avance;
@@ -580,6 +607,43 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
                             return(liste);
                         }
                     }
+                    else if ((liste->suiv)->lex.type==SYMBOL) {
+                        DEBUG_MSG("Nombre d'opérande de l'instruction précédente = %d\n", compt_operande);
+                        instruct1.nb_operande = compt_operande;
+                        compt_virgule = 0;
+                        compt_operande = 0;
+                        *decalage_text = *decalage_text +4 ;
+                        *decalage_global = *decalage_global +4 ;
+                        instruct1.decalage = *decalage_text;
+
+                        avance;
+                        DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+                        DEBUG_MSG("decalage text = %d et decala_global = %d\n",*decalage_text, *decalage_global);
+
+                        DEBUG_MSG("Analyse l'instruction %s ligne %d\n",liste->lex.strlex,liste->lex.ligne);
+                        if(fonction_test_instruction(Tab_dico,liste->lex.strlex, &recup_indice)==0) {
+                            if(strcmp(liste->lex.strlex,nop)==0 || strcmp(liste->lex.strlex,syscall)==0) {
+                                *decalage_text = *decalage_text + 4 ;
+                                *decalage_global = *decalage_global +4 ;
+                                si_dernier{ *fin=1; return(liste);}
+                                else {
+                                    *decalage_text = *decalage_text +4 ;
+                                    *decalage_global = *decalage_global +4 ;
+                                    avance;
+                                    DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+                                    S=initTEXT;
+                                    break;
+                                }
+                            }
+                            S=instructionTEXT;
+                            DEBUG_MSG("S = instructionTEXT\n");
+                        }
+                        else if(fonction_test_instruction(Tab_dico,liste->lex.strlex, &recup_indice)==1) {
+                            DEBUG_MSG("Instruction %s inconnue ligne %d\n",liste->lex.strlex,liste->lex.ligne);
+                            *gestion_err=1;
+                            return(liste);
+                        }
+                    }
                     else {
                         DEBUG_MSG("strlex = %s \n",liste->lex.strlex);
                         ERROR_MSG("Mauvaise operande ligne %d\n",liste->lex.ligne);
@@ -593,6 +657,8 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
                         return(liste);
                     }
                 }
+
+
                 /* ajout d'un test car si pas d'entrée dans le while alors pas d'opérande => erreur ??? SAUF SI instruction sans opérandes ...
                 if (compt_operande == 0) {
                   &gestion_err = 1;
@@ -602,6 +668,8 @@ LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int
                 break;
 
             }
+            printf("Affichage de instruct1 : \n");
+            printf("lex = %s \t nb_operande = %d \t ligne = %d \t decalage section = %d \t\n",instruct1.lex.strlex,instruct1.nb_operande,instruct1.ligne,instruct1.decalage);
             /* ajout_queue_instruct(instruct,collection_instruct); */
             break;
 

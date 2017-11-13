@@ -99,6 +99,8 @@ LISTE_DATA ajout_queue_data(DATA data1,LISTE_DATA l) {
     }
 }
 
+/* Toutes les fonctions pour la manipulation de la collection bss  */
+
 LISTE_BSS creer_liste_bss(void) {
     LISTE_BSS p = calloc(1, sizeof(*p));
     return p;
@@ -144,6 +146,8 @@ LISTE_BSS ajout_queue_bss(BSS BSS1, LISTE_BSS l) {
         return tete_de_l;
     }
 }
+
+/* Toutes les fonctions pour la manipulation de la collection instruction text */
 
 LISTE_INSTRUCT creer_liste_instruct(void) {
     LISTE_INSTRUCT p = calloc(1, sizeof(*p));

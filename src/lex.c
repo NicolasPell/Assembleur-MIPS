@@ -163,9 +163,10 @@ int lex_load_file( char *file, unsigned int *nlines) {
     }
     liste_lexeme = liste_lexeme->suiv;
     visualiser_liste(liste_lexeme);
-    int err =0;
+    int err =0 ;
     err = automate_init(liste_lexeme);
     printf("Valeur erreur = %d\n",err);
+
     fclose(fp);
     fclose(plex_bilan);
 }
@@ -500,7 +501,3 @@ char* whois(int S) {
     liste3 = concat(liste1,liste2);
     visualiser_liste(liste3);
 } */
-
-
-
-

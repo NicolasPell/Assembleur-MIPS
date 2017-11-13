@@ -40,6 +40,7 @@ int automate_init(LISTE_LEX liste) {
     const char* space = ".space";
     const char* byte = ".byte";
     const char* set = ".set";
+   
 
     LISTE_DATA collection_data = creer_liste_data();
     LISTE_BSS collection_bss = creer_liste_bss();
@@ -96,7 +97,7 @@ int automate_init(LISTE_LEX liste) {
                 }
                 else if (strcmp(liste->lex.strlex,text)==0) {
 
-                    liste = automate_text(liste,&gestion_err, &fin, &decalage_text,&decalage_global,&memory_set);
+                    liste = automate_text(liste, collection_instruct, &gestion_err, &fin, &decalage_text,&decalage_global,&memory_set);
                     if (gestion_err == 1) {
                         S=ERREUR;
                         return(gestion_err);
@@ -154,8 +155,6 @@ int automate_init(LISTE_LEX liste) {
     }
     return(gestion_err);
 }
-
-
 
 
 /* AUTOMATE DATA */
@@ -1003,11 +1002,8 @@ LISTE_LEX automate_bss(LISTE_LEX liste, LISTE_BSS collection_bss, int* gestion_e
                           printf("Hexa trop long pour strtol\n");
                           return(liste);
                       }
-                      if (res < 0) {
-                          *gestion_err = 1;
-                          ERROR_MSG("Erreur conversion strtol");
-                      }
                   }
+
                   else if (liste->lex.type == DECIMAL || liste->lex.type == DECIMAL_ZERO){
                       res = strtol(liste->lex.strlex,&ptr,10);
                       if (*ptr!='\0') {
@@ -1028,6 +1024,8 @@ LISTE_LEX automate_bss(LISTE_LEX liste, LISTE_BSS collection_bss, int* gestion_e
                   DEBUG_MSG("decalage bss = %d et decala_global = %d\n",*decalage_bss, *decalage_global);
 
                   printf("je suis la\n");
+
+
                   strcpy(bss1.DIR,space);
                   printf("je suis ici\n");
                   printf("voici la directive copiee dans le bss1: %s\n",bss1.DIR);

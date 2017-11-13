@@ -19,6 +19,7 @@
 #define avance liste=liste->suiv
 
 enum {START, initTEXT, initBSS, initDATA, VIRGULE, DEB_REG, REG, SYMBOL, DEUX_POINTS, DECIMAL_ZERO, HEXA, DIREC, DECIMAL, PARENTHESE, COMMENT, ETIQUETTE, INSTRUCTION, etiquetteDATA,lexDATA, wordDATA, asciizDATA, spaceDATA, byteDATA, change_sectionDATA, spaceBSS, change_sectionBSS, etiquetteTEXT, deb_instructionTEXT, instructionTEXT, change_sectionTEXT, ERREUR};
+enum {classe_REG, classe_IMM, classe_SA, classe_REL, classe_SYMB, classe_BAS, classe_ABS} ;/* types d'operandes pour les instructions */
 
 void majuscule(char *chaine) {
 
@@ -34,6 +35,7 @@ struct dico_instr {
     char str_intr[10];
     int nb_op;
     char str_type[10];
+    char str_classe_op[3][15];
 };
 
 
@@ -60,9 +62,6 @@ int fonction_test_instruction(DICO_INSTR* Tab_dico, char* strlex, int* recup_ind
 }
 
 
-
-
-
 DICO_INSTR* chargement_dico(FILE* pdico) {
 
     char token[10];
@@ -82,8 +81,13 @@ DICO_INSTR* chargement_dico(FILE* pdico) {
         fscanf(pdico, "%s", token);
         strcpy(Tab_dico[k].str_type,token);
 
+        /* remplissage des classes d'operandes pour analyse future */
+        int i;
+        for (i=0 ;i<int_token ;i++){
+          fscanf(pdico, "%s", token);
+          strcpy(Tab_dico[k].str_classe_op[i], token);
+        }
         k++;
-
     }
 
     fseek(pdico,0, SEEK_SET); /* remise au debut du pointeur de fichier */
@@ -91,7 +95,24 @@ DICO_INSTR* chargement_dico(FILE* pdico) {
 }
 
 
-LISTE_LEX automate_text(LISTE_LEX liste,int* gestion_err,int* fin,int* decalage_text, int* decalage_global, int* memory_set) {
+int test_op_instruct(collection_instruct) {
+  /* renvoie 1 si erreur d'operandes, 0 sinon */
+  int res;
+  FILE* pdico;
+  pdico= fopen("./dico_instr.txt","r");
+  if(pdico== NULL) {
+      printf("Erreur ouverture fichier dictionnaire instruct \n");
+      return 0;
+  }
+  /* collection_instruct->Tab_Op->str_classe_op; */
+
+
+
+}
+
+
+
+LISTE_LEX automate_text(LISTE_LEX liste, LISTE_INSTRUCT collection_instruct, int* gestion_err,int* fin,int* decalage_text, int* decalage_global, int* memory_set) {
 
     const char* word = ".word";
     const char* asciiz = ".asciiz";
@@ -104,6 +125,10 @@ LISTE_LEX automate_text(LISTE_LEX liste,int* gestion_err,int* fin,int* decalage_
     const char* point = ".";
     const char* nop = "NOP";
     const char* syscall = "SYSCALL";
+    /* constantes pour tester la validité des registres */
+    const char* zero = "zero";
+
+    INSTRUCT instruct1;
 
     int recup_indice;
 
@@ -266,37 +291,215 @@ LISTE_LEX automate_text(LISTE_LEX liste,int* gestion_err,int* fin,int* decalage_
 
         case instructionTEXT:
 
-            /*INSTRUCT instruction;
-            instruction.lex = liste->lex.strlex;
-            instruction.nb_operande = Tab_dico[*recup_indice].nb_operande;
-            instruction.ligne = liste->lex.ligne;
-            instruction.decalage = *decalage_text;
-            /* mettre le tableau d'operandes a remplir dans le while */
-
-            INFO_MSG("strlex = %s\n",liste->lex.strlex);
-            INFO_MSG("Je suis dans instructionTEXT\n");
             si_dernier{
-                DEBUG_MSG("Fin de liste\n");
+                DEBUG_MSG("Fin de liste instruction dans .text sans operande\n");
                 S=ERREUR;
                 *gestion_err=1;
                 return(liste);
             }
             else {
 
+                char* type ="";
+                int res;
+                char* ptr;
                 int compt_virgule;
                 int compt_operande;
+                int err_type_op; /* entier test pour test validité instruction */
 
                 DEBUG_MSG("Analyse l'instruction %s ligne %d\n",liste->lex.strlex,liste->lex.ligne);
+
+                instruct1.lex=liste->lex;
+                instruct1.ligne = liste->lex.ligne;
+                printf("Voici l'instruction copiee dans instruct1: %s\n",instruct1.lex.strlex);
 
 
                 while(liste->suiv!=NULL) {
 
                     compt_virgule = 0;
                     compt_operande = 0;
+
                     avance;
                     DEBUG_MSG("strlex = %s\n",liste->lex.strlex);
+
+
+                /*    collection_instruct = ajout_queue_instruct(instruct1, collection_instruct);
+
+                    char instr = liste->lex.strlex;
+                    err_type_op = test_op_instruct(liste->lex,); */
+
                     if(liste->lex.type==HEXA ||liste->lex.type==DECIMAL || liste->lex.type==DECIMAL_ZERO || liste->lex.type==SYMBOL || liste->lex.type==REG) {
+
+                      /*  type = whois(liste->lex.type);
+                        printf("type du lex = %s\n", type); */
                         compt_operande = compt_operande + 1;
+
+                        switch(liste->lex.type) {
+
+                          case HEXA:
+                          break;
+
+                          case SYMBOL:
+                          break;
+
+                          case DECIMAL:
+                          break;
+
+                          case DECIMAL_ZERO:
+                          break;
+
+                          case REG:
+
+                          if (liste->lex.strlex[1] == NULL) {  /* erreur aucun registre de cette taille */
+                            *gestion_err = 1;
+                            ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            return(liste);
+                          }
+
+                          else if (liste->lex.strlex[5] != NULL) {  /* erreur aucun registre de cette taille */
+                            *gestion_err = 1;
+                            ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            return(liste);
+                          }
+
+                          /* cas des digits entre 0 et 31 */
+                          else if (isdigit(liste->lex.strlex[1])) {
+                            printf("je suis un digiiit\n");
+                            res = liste->lex.strlex[1] - '0';   /* convertit le char '1' en int 1 ; */
+                            printf("res = %d \n",res);
+
+                            if (liste->lex.strlex[2] != NULL) {
+                              if ( (res == 1) || (res == 2) ) {
+                                if (!isdigit(liste->lex.strlex[2])) {*gestion_err = 1; ERROR_MSG("Valeur de registre 1 invalide\n");}
+                              }
+                              else if (res==3) {
+                                if (!isdigit(liste->lex.strlex[2])) {*gestion_err = 1; ERROR_MSG("Valeur de registre 1 invalide\n");}
+                                res = liste->lex.strlex[2] - '0';
+                                if ( (res < 0) || (res > 1) ) {
+                                  *gestion_err = 1;
+                                  ERROR_MSG("Valeur de registre 1 invalide\n");
+                                }
+                              }
+                              else{
+                                  *gestion_err = 1;
+                                  ERROR_MSG("Valeur de registre 1 invalide\n");
+                              }
+                            }
+                          }
+
+                          /* cas du $zero */
+                          else if (liste->lex.strlex[1] == 'z') {
+                            if( (liste->lex.strlex[2] == 'e') && (liste->lex.strlex[3] == 'r') && (liste->lex.strlex[4] =='o') ) {
+                              printf("ok\n");
+                            }
+                            else{
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide\n");
+                              return(liste);
+                            }
+                          }
+
+                          /* aucun registre a 3 caractères */
+                          else if (liste->lex.strlex[3] != NULL) { /* le seul cas ayant un 3e char est traité avec le zero */
+                            *gestion_err = 1;
+                            ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            return(liste);
+                          }
+
+                          /* cas des $+ lettre+chiffre */
+                          else if (liste->lex.strlex[1] == 'a') {
+                            if(liste->lex.strlex[2] == NULL) {*gestion_err = 1; ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);}
+                            else if (liste->lex.strlex[2] != 't') {
+                              res = liste->lex.strlex[2] - '0';   /* convertit le char en int ; */
+                              printf("res = %d \n",res);
+                              if(res < 0 || res > 3) {*gestion_err = 1; ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne); }
+                            }
+                            else if(liste->lex.strlex[2] == 't') {
+                            }
+                            else{
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                              return(liste);
+                            }
+                          }
+
+                          else if (liste->lex.strlex[1] == 'v') {
+                            if(liste->lex.strlex[2] == NULL) {
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            }
+                            res = liste->lex.strlex[2] - '0' ;
+                            if (res == 0 || res == 1) {
+                            }
+                            else{
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            }
+                          }
+
+                          else if (liste->lex.strlex[1] == 't') {
+                            if(liste->lex.strlex[2] == NULL) {
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            }
+                            res = liste->lex.strlex[2] - '0' ;
+                            if ( (res >= 0) && (res <= 9) ) {
+                            }
+                            else{
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            }
+                          }
+
+                          else if (liste->lex.strlex[1] == 's') {
+                            if(liste->lex.strlex[2] == NULL) {
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            }
+                            res = liste->lex.strlex[2] - '0' ;
+                            if ( (res >= 0) && (res <= 7) ) {
+                            }
+                            else{
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            }
+                          }
+
+                          else if (liste->lex.strlex[1] == 'k') {
+                            if(liste->lex.strlex[2] == NULL) {
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            }
+                            res = liste->lex.strlex[2] - '0' ;
+                            if (res == 0 || res == 1) {
+                            }
+                            else{
+                              *gestion_err = 1;
+                              ERROR_MSG("Registre invalide ligne %d\n", liste->lex.ligne);
+                            }
+                          }
+
+                          /*cas des $+2lettres */
+                          else if ( (liste->lex.strlex[1] == 'g') && (liste->lex.strlex[2] == 'p') ) {}
+                          else if ( (liste->lex.strlex[1] == 's') && (liste->lex.strlex[2] == 'p') ) {}
+                          else if ( (liste->lex.strlex[1] == 'f') && (liste->lex.strlex[2] == 'p') ) {}
+                          else if ( (liste->lex.strlex[1] == 'r') && (liste->lex.strlex[2] == 'a') ) {}
+
+
+
+                          else if (isalpha(liste->lex.strlex[1])) {
+
+                          }
+
+                          else{
+                            puts("lol");
+                            *gestion_err = 1;
+                            return(liste);
+                          }
+
+                          break;
+
+                        }
+
                         si_pas_dernier{
                             if((liste->suiv)->lex.type==VIRGULE) {
                                 avance;

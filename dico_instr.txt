@@ -1,29 +1,29 @@
-ADD 3 type_R
-ADDI 3 type_I
-AND 3 type_R
-BEQ 3 type_I
-BGTZ 2 type_I
-BLEZ 2 type_I
-BNE 3 type_I
-DIV 2 type_I
-J 1 type_J
-JAL 1 type_J
-JR 1 type_R
-LUI 2 type_I
-LW 2 type_I
-MFHI 1 type_R
-MFLO 1 type_R
-MULT 2 type_R
+ADD 3 type_R classe_REG classe_REG classe_REG
+ADDI 3 type_I classe_REG classe_REG classe_IMM
+AND 3 type_R classe_REG classe_REG classe_REG
+BEQ 3 type_I classe_REG classe_REG classe_REL
+BGTZ 2 type_I classe_REG classe_REL
+BLEZ 2 type_I classe_REG classe_REL
+BNE 3 type_I classe_REG classe_REG classe_REL
+DIV 2 type_I classe_REG classe_REG
+J 1 type_J classe_ABS
+JAL 1 type_J classe_ABS
+JR 1 type_R classe_REG
+LUI 2 type_I classe_REG classe_IMM
+LW 2 type_I classe_REG classe_BAS
+MFHI 1 type_R classe_REG
+MFLO 1 type_R classe_REG
+MULT 2 type_R classe_REG classe_REG
 NOP 0 type_R
-OR 3 type_R
-ROTR 3 type_R
-SLL 3 type_R
-SLT 3 type_R
-SRL 3 type_R
-SUB 3 type_R
-SW 2 type_I
+OR 3 type_R classe_REG classe_REG classe_REG 
+ROTR 3 type_R classe_REG classe_REG classe_SA
+SLL 3 type_R classe_REG classe_REG classe_SA
+SLT 3 type_R classe_REG classe_REG classe_REG
+SRL 3 type_R classe_REG classe_REG classe_SA
+SUB 3 type_R classe_REG classe_REG classe_REG
+SW 2 type_I classe_REG classe_BAS
 SYSCALL 0 type_J
-XOR 3 type_R
+XOR 3 type_R classe_REG classe_REG classe_REG
 
 
 

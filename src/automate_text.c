@@ -42,7 +42,7 @@ typedef struct dico_instr DICO_INSTR;
 
 
 
-int fonction_test_instruction(DICO_INSTR* Tab_dico, char* strlex, int* recup_indice) {
+int fonction_test_instruction(DICO_INSTR* Tab_dico,char* strlex, int* recup_indice) {
     majuscule(strlex);
     printf("\n\n");
     int i = 0;
@@ -91,7 +91,7 @@ DICO_INSTR* chargement_dico(FILE* pdico) {
 }
 
 
-LISTE_LEX automate_text(LISTE_LEX liste,int* gestion_err,int* fin,int* decalage_text, int* decalage_global, int* memory_set) {
+LISTE_LEX automate_text(LISTE_LEX liste,LISTE_INSTRUCT collection_instruct,char** table_symb,int* gestion_err,int* fin,int* decalage_text, int* decalage_global, int* memory_set) {
 
     const char* word = ".word";
     const char* asciiz = ".asciiz";

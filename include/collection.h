@@ -79,6 +79,13 @@ struct liste_bss {
 
 typedef struct liste_bss* LISTE_BSS;
 
+struct unit_table_symb{
+  char stretiquette[50];
+  struct unit_table_symb* suiv;
+};
+
+typedef struct unit_table_symb* UNIT_TABLE_SYMB;
+
 
 #endif /* _COLLECT_H_ */
 

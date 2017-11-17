@@ -190,3 +190,102 @@ LISTE_INSTRUCT ajout_queue_instruct(INSTRUCT instruct1, LISTE_INSTRUCT l) {
         return tete_de_l;
     }
 }
+
+int hashage(char *chaine){
+
+    int i = 0, nombreHache = 0, a = 1;
+
+    for (i = 0 ; chaine[i] != '\0' ; i++)
+    {
+        nombreHache += a*chaine[i];
+        a = a*3;
+    }
+    nombreHache %= 200;
+    printf("Voici le hash calculé: %d \n", nombreHache);
+    return nombreHache;
+
+}
+UNIT_TABLE_SYMB ajout_queue_symb(char* strlex,UNIT_TABLE_SYMB l) {
+
+    UNIT_TABLE_SYMB p = calloc(1, sizeof(*p));
+    strcpy(p->stretiquette,strlex);
+    printf("Voici le strlex ajouté: %s\n",p->stretiquette);
+    p->suiv = NULL;
+
+    if(l== NULL){
+        return p;
+    }
+
+    else if(l->stretiquette==" "){
+        printf("okay ma gueule\n");
+        return(p);
+    }
+    else  {
+        UNIT_TABLE_SYMB tete_de_l = l;
+        while((l->suiv)!=NULL) {
+            l = l->suiv;
+        }
+        l->suiv = p;
+        free(l);
+        return tete_de_l;
+    }
+}
+/*
+void visualiser_table_symb(UNIT_TABLE_SYMB table_symb){
+
+  UNIT_TABLE_SYMB cursor = calloc(1,sizeof(*cursor));
+
+	puts("\n\n*** Table des Symboles : ***\n");
+
+	int i;
+
+	for(i=0;i<200;i++){
+
+    cursor = (table_symb+i);
+    printf("Element %d : %s",i,cursor->stretiquette);
+    while(cursor->suiv !=NULL){
+        cursor = cursor->suiv;
+		    printf("%s ,  ",cursor->stretiquette);
+    }
+    printf("\n");
+	}
+
+}
+*/
+
+void visualiser_table_symb(char** table_symb){
+
+  puts("\n\n*** Table des Symboles : ***\n");
+  int i;
+  for(i=0;i<200;i++){
+    printf("Element %d : %s",i,table_symb[i]);
+    printf("\n");
+  }
+}
+
+void remplissage_tab_symb(char** table_symb, char* strlex, int* ind){
+
+              int h = hashage(strlex)+*ind;
+
+              if(strcmp(table_symb[h]," ")==0){
+                 table_symb[h]= strlex;
+              }
+
+              else{
+                 if(table_symb[h] == strlex){
+                    ;
+                 }
+                 else{
+                   /* il y a collision ! on gère en ajoutant plus 1 */
+                   if (ind < 200-h){
+                     *ind ++;
+                     remplissage_tab_symb(table_symb, strlex, ind);
+                  }
+                  else{
+                      ERROR_MSG("Erreur hashage: collision dans la table des symboles veuillez changer les noms des étiquettes");
+                  }
+               }
+              }
+
+
+}

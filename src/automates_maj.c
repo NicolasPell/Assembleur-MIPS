@@ -43,8 +43,18 @@ int automate_init(LISTE_LEX liste) {
 
     LISTE_DATA collection_data = creer_liste_data();
     LISTE_BSS collection_bss = creer_liste_bss();
-    /*LISTE_SYMBOL table_symbol = creer_liste_symbol();*/
     LISTE_INSTRUCT collection_instruct = creer_liste_instruct();
+
+    /* creation de la table des symboles */
+
+    char table_symb[200][50] ;
+
+    /* memset de la table_symb */
+
+    int i =0;
+    for(i=0;i<200;i++){
+    	strcpy(table_symb[i]," ");
+    }
 
     DEBUG_MSG("Automate initial en cours ...\n");
 
@@ -85,7 +95,7 @@ int automate_init(LISTE_LEX liste) {
                 DEBUG_MSG("Entrée dans le if DIREC de automate initial\n");
                 if (strcmp(liste->lex.strlex,bss)==0) {
 
-                    liste = automate_bss(liste, collection_bss, &gestion_err, &fin, &decalage_bss, &decalage_global, &memory_set);
+                    liste = automate_bss(liste, collection_bss, table_symb, &gestion_err, &fin, &decalage_bss, &decalage_global, &memory_set);
                     if (gestion_err == 1) {
                         S=ERREUR;
                         return(gestion_err);
@@ -96,7 +106,7 @@ int automate_init(LISTE_LEX liste) {
                 }
                 else if (strcmp(liste->lex.strlex,text)==0) {
 
-                    liste = automate_text(liste,&gestion_err, &fin, &decalage_text,&decalage_global,&memory_set);
+                    liste = automate_text(liste, collection_instruct, table_symb, &gestion_err, &fin, &decalage_text,&decalage_global,&memory_set);
                     if (gestion_err == 1) {
                         S=ERREUR;
                         return(gestion_err);
@@ -107,7 +117,7 @@ int automate_init(LISTE_LEX liste) {
                 }
                 else if (strcmp(liste->lex.strlex,data)==0) {
 
-                    liste = automate_data(liste, collection_data, &gestion_err, &fin, &decalage_data, &decalage_global, &memory_set);
+                    liste = automate_data(liste, collection_data, table_symb, &gestion_err, &fin, &decalage_data, &decalage_global, &memory_set);
 
                     if(gestion_err == 1) {
                         S=ERREUR;
@@ -158,9 +168,16 @@ int automate_init(LISTE_LEX liste) {
 
 
 
+
+
+
+
+
+
+
 /* AUTOMATE DATA */
 
-LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_err, int* fin, int* decalage_data, int* decalage_global, int* memory_set) {
+LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,char** table_symb,int* gestion_err, int* fin, int* decalage_data, int* decalage_global, int* memory_set) {
 
     const char* word = ".word";
     const char* asciiz = ".asciiz";
@@ -170,6 +187,7 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
     const char* space = ".space";
     const char* byte = ".byte";
     const char* set = ".set";
+    int indi=0;
     DATA data1;
 
     char* ptr;
@@ -286,6 +304,14 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
             }
 
         case etiquetteDATA:
+
+
+
+            remplissage_tab_symb(table_symb,liste->lex.strlex,&indi);
+            indi = 0;
+            getchar();
+        		visualiser_table_symb(table_symb);getchar();
+
             avance;
             si_pas_dernier {
                 avance;
@@ -883,7 +909,7 @@ LISTE_LEX automate_data(LISTE_LEX liste,LISTE_DATA collection_data,int* gestion_
 
 /* AUTOMATE BSS */
 
-LISTE_LEX automate_bss(LISTE_LEX liste, LISTE_BSS collection_bss, int* gestion_err, int* fin, int* decalage_bss, int* decalage_global, int* memory_set) {
+LISTE_LEX automate_bss(LISTE_LEX liste, LISTE_BSS collection_bss,char** table_symb, int* gestion_err, int* fin, int* decalage_bss, int* decalage_global, int* memory_set) {
 
     const char* word = ".word";
     const char* asciiz = ".asciiz";
